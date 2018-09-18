@@ -206,42 +206,61 @@ namespace Kernel.HSM
 
 		public void AddEvent<TEvent>(string eventName, Action<State, TEvent> action) where TEvent : EventArgs
 		{
-			// TODO: check errors
+			if (_events.ContainsKey(eventName))
+			{
+				throw new ApplicationException("Event with name \"" + eventName + "\" already exists in list of events. State: \"" + Name + "\"");
+			}
+
 			_events.Add(eventName, args => action(this, args as TEvent));
 		}
 
 		public void TriggerEvent(string eventName, EventArgs args = null)
 		{
-			if (_events.ContainsKey(eventName))
+			if (Root.CurrentState == null)
 			{
-				_events[eventName](args);
+				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");
+			}
+
+			if (Root.CurrentState._events.ContainsKey(eventName))
+			{
+				Root.CurrentState._events[eventName](args);
 			}
 		}
 
 		public void TriggerEventUpwards(string eventName, EventArgs args = null)
 		{
-			if (_events.ContainsKey(eventName))
+			if (Root.CurrentState == null)
 			{
-				_events[eventName](args);
+				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");
+			}
+
+			if (Root.CurrentState._events.ContainsKey(eventName))
+			{
+				Root.CurrentState._events[eventName](args);
 				return;
 			}
 
-			if (Parent != null)
+			if (Root.CurrentState.Parent != null)
 			{
-				Parent.TriggerEventUpwards(eventName, args);
+				Root.CurrentState.Parent.TriggerEventUpwards(eventName, args);
 			}
 		}
 
 		public void BroadcastEvent(string eventName, EventArgs args = null)
 		{
-			if (_events.ContainsKey(eventName))
+			if (Root.CurrentState == null)
 			{
-				_events[eventName](args);
+				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");
 			}
 
-			if (Parent != null)
+			if (Root.CurrentState._events.ContainsKey(eventName))
 			{
-				Parent.BroadcastEvent(eventName, args);
+				Root.CurrentState._events[eventName](args);
+			}
+
+			if (Root.CurrentState.Parent != null)
+			{
+				Root.CurrentState.Parent.BroadcastEvent(eventName, args);
 			}
 		}
 
