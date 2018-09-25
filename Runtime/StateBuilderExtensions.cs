@@ -10,6 +10,7 @@ namespace Kernel.HSM
 			public class ConcreteStateInfo
 			{
 				public MethodInfo Awake { get; set; }
+				public MethodInfo Start { get; set; }
 				public MethodInfo OnDestroy { get; set; }
 				public MethodInfo OnEnter { get; set; }
 				public MethodInfo OnExit { get; set; }
@@ -23,6 +24,7 @@ namespace Kernel.HSM
 				return new ConcreteStateInfo
 				{
 					Awake = type.GetMethod("Awake", flags),
+					Start = type.GetMethod("Start", flags),
 					OnDestroy = type.GetMethod("OnDestroy", flags),
 					OnEnter = type.GetMethod("OnEnter", flags),
 					OnExit = type.GetMethod("OnExit", flags),
@@ -46,6 +48,15 @@ namespace Kernel.HSM
 					if (info.Awake != null && concreteState != null)
 					{
 						info.Awake.Invoke(concreteState, null);
+					}
+				})
+				///
+				/// Start State
+				.Start(state =>
+				{
+					if (info.Start != null && concreteState != null)
+					{
+						info.Start.Invoke(concreteState, null);
 					}
 				})
 				///

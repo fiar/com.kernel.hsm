@@ -33,6 +33,13 @@ namespace Kernel.HSM
 			return this;
 		}
 
+		public StateBuilder<TParent> Start(Action<State> action)
+		{
+			_state.AddStart(() => action(_state));
+
+			return this;
+		}
+
 		public StateBuilder<TParent> Enter(Action<State> action)
 		{
 			_state.AddEnter(() => action(_state));

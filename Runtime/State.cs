@@ -14,6 +14,7 @@ namespace Kernel.HSM
 		public bool IsActive { get; protected set; }
 
 		private Action _awakeAction;
+		private Action _startAction;
 		private Action _enterAction;
 		private Action _exitAction;
 		private Action _destroyAction;
@@ -43,6 +44,14 @@ namespace Kernel.HSM
 			if (_awakeAction != null)
 			{
 				_awakeAction();
+			}
+		}
+
+		public void Start()
+		{
+			if (_startAction != null)
+			{
+				_startAction();
 			}
 		}
 
@@ -174,6 +183,11 @@ namespace Kernel.HSM
 			_awakeAction += action;
 		}
 
+		public void AddStart(Action action)
+		{
+			_startAction += action;
+		}
+
 		public void AddEnter(Action action)
 		{
 			_enterAction += action;
@@ -216,6 +230,10 @@ namespace Kernel.HSM
 
 		public void TriggerEvent(string eventName, EventArgs args = null)
 		{
+#if UNITY_EDITOR
+			if (!Root.IsRun) throw new ApplicationException("State machine is not runned.");
+#endif
+
 			if (Root.CurrentState == null)
 			{
 				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");
@@ -229,6 +247,10 @@ namespace Kernel.HSM
 
 		public void TriggerEventUpwards(string eventName, EventArgs args = null)
 		{
+#if UNITY_EDITOR
+			if (!Root.IsRun) throw new ApplicationException("State machine is not runned.");
+#endif
+
 			if (Root.CurrentState == null)
 			{
 				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");
@@ -248,6 +270,10 @@ namespace Kernel.HSM
 
 		public void BroadcastEvent(string eventName, EventArgs args = null)
 		{
+#if UNITY_EDITOR
+			if (!Root.IsRun) throw new ApplicationException("State machine is not runned.");
+#endif
+
 			if (Root.CurrentState == null)
 			{
 				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");

@@ -7,6 +7,8 @@ namespace Kernel.HSM
 	{
 		public State CurrentState { get; private set; }
 
+		public bool IsRun { get; private set; }
+
 		private int _changeStateFrameCount;
 		private int _changeStateCounter;
 #if UNITY_EDITOR
@@ -55,9 +57,34 @@ namespace Kernel.HSM
 			CurrentState = state;
 		}
 
+		public void Run(string stateName)
+		{
+			if (!IsRun)
+			{
+				StartChildren(this);
+
+				IsRun = true;
+				PushState(stateName);
+			}
+		}
+
 		public void Terminate()
 		{
-			DestroyChildren(this);
+			if (IsRun)
+			{
+				IsRun = false;
+				DestroyChildren(this);
+			}
+		}
+
+		private void StartChildren(State state)
+		{
+			state.Start();
+
+			foreach (var child in state.Children)
+			{
+				StartChildren(child);
+			}
 		}
 
 		private void DestroyChildren(State state)
