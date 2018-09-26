@@ -7,6 +7,7 @@ namespace Kernel.HSM
 	{
 		public State CurrentState { get; private set; }
 
+		public bool CanTransitSelf { get; set; }
 		public bool IsRun { get; private set; }
 
 		private int _changeStateFrameCount;
@@ -61,9 +62,10 @@ namespace Kernel.HSM
 		{
 			if (!IsRun)
 			{
+				IsRun = true;
+
 				StartChildren(this);
 
-				IsRun = true;
 				PushState(stateName);
 			}
 		}
