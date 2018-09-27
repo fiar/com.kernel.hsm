@@ -243,10 +243,7 @@ namespace Kernel.HSM
 				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");
 			}
 
-			if (Root.CurrentState._events.ContainsKey(eventName))
-			{
-				Root.CurrentState._events[eventName](args);
-			}
+			TriggerEvent_Internal(Root.CurrentState, eventName, args);
 		}
 
 		public void TriggerEventUpwards(string eventName, EventArgs args = null)
@@ -260,16 +257,7 @@ namespace Kernel.HSM
 				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");
 			}
 
-			if (Root.CurrentState._events.ContainsKey(eventName))
-			{
-				Root.CurrentState._events[eventName](args);
-				return;
-			}
-
-			if (Root.CurrentState.Parent != null)
-			{
-				Root.CurrentState.Parent.TriggerEventUpwards(eventName, args);
-			}
+			TriggerEventUpwards_Internal(Root.CurrentState, eventName, args);
 		}
 
 		public void BroadcastEvent(string eventName, EventArgs args = null)
@@ -283,15 +271,7 @@ namespace Kernel.HSM
 				throw new ApplicationException("TriggerEvent with name \"" + eventName + "\" is failed. Current state in null.");
 			}
 
-			if (Root.CurrentState._events.ContainsKey(eventName))
-			{
-				Root.CurrentState._events[eventName](args);
-			}
-
-			if (Root.CurrentState.Parent != null)
-			{
-				Root.CurrentState.Parent.BroadcastEvent(eventName, args);
-			}
+			BroadcastEvent_Internal(Root.CurrentState, eventName, args);
 		}
 
 		public IEnumerable<State> Children
@@ -302,6 +282,41 @@ namespace Kernel.HSM
 		public IEnumerable<string> Events
 		{
 			get { return _events.Keys; }
+		}
+
+		private void TriggerEvent_Internal(State state, string eventName, EventArgs args)
+		{
+			if (state._events.ContainsKey(eventName))
+			{
+				state._events[eventName](args);
+			}
+		}
+
+		private void TriggerEventUpwards_Internal(State state, string eventName, EventArgs args)
+		{
+			if (state._events.ContainsKey(eventName))
+			{
+				state._events[eventName](args);
+				return;
+			}
+
+			if (state.Parent != null)
+			{
+				state.TriggerEventUpwards_Internal(state.Parent, eventName, args);
+			}
+		}
+
+		private void BroadcastEvent_Internal(State state, string eventName, EventArgs args)
+		{
+			if (state._events.ContainsKey(eventName))
+			{
+				state._events[eventName](args);
+			}
+
+			if (state.Parent != null)
+			{
+				state.BroadcastEvent_Internal(state.Parent, eventName, args);
+			}
 		}
 	}
 }
