@@ -70,6 +70,19 @@ namespace Kernel.HSM
 			}
 		}
 
+		public void Stop()
+		{
+			if (IsRun)
+			{
+				IsRun = false;
+
+				Exit();
+
+				CurrentState = this;
+				IsActive = true;
+			}
+		}
+
 		public void Terminate()
 		{
 			if (IsRun)
