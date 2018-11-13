@@ -38,6 +38,7 @@ namespace Kernel.HSM
 			if (_changeStateFrameCount != Time.frameCount)
 			{
 				_changeStateFrameCount = Time.frameCount;
+				_changeStateCounter = 0;
 #if UNITY_EDITOR
 				_statesStack = string.Empty;
 #endif

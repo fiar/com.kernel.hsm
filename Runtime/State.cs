@@ -112,18 +112,18 @@ namespace Kernel.HSM
 
 		public void PushState(string stateName)
 		{
+			if (ActiveChild != null)
+			{
+				ActiveChild.Exit();
+			}
+
 			State state;
 			if (!_children.TryGetValue(stateName, out state))
 			{
 				throw new KeyNotFoundException("Tried to push to state \"" + stateName + "\", but it is not in the list of children. State: \"" + Name + "\"");
 			}
 
-			if (!Root.CanTransitSelf && Root.CurrentState == state) return;
-
-			if (ActiveChild != null)
-			{
-				ActiveChild.Exit();
-			}
+			if (!Root.CanTransitSelf && this == state) return;
 
 			ActiveChild = state;
 			Root.SetCurrentState(ActiveChild);
@@ -143,7 +143,7 @@ namespace Kernel.HSM
 				throw new KeyNotFoundException("Tried to change to state \"" + stateName + "\", but it is not in the list of children. State: \"" + Name + "\"");
 			}
 
-			if (!Root.CanTransitSelf && Root.CurrentState == state) return;
+			if (!Root.CanTransitSelf && this == state) return;
 
 			if (Parent.ActiveChild != null)
 			{
