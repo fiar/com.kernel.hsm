@@ -75,9 +75,16 @@ namespace Kernel.HSM
 			return this;
 		}
 
-		public StateBuilder<TParent> Event<TEvent>(string eventName, Action<State, TEvent> action) where TEvent : EventArgs
+		public StateBuilder<TParent> Event<TEvent>(string eventName, Action<State, TEvent> action) where TEvent : class
 		{
 			_state.AddEvent<TEvent>(eventName, (state, args) => action(state, args));
+
+			return this;
+		}
+
+		public StateBuilder<TParent> Message<TMessage>(Action<State, TMessage> action) where TMessage : class
+		{
+			_state.AddMessage<TMessage>((state, msg) => action(state, msg));
 
 			return this;
 		}

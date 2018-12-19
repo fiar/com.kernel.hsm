@@ -21,7 +21,8 @@ namespace Kernel.HSM
 		private Action _updateAction;
 
 		private Dictionary<string, State> _children = new Dictionary<string, State>();
-		private Dictionary<string, Action<EventArgs>> _events = new Dictionary<string, Action<EventArgs>>();
+		private Dictionary<string, Action<object>> _events = new Dictionary<string, Action<object>>();
+		private List<IDisposable> _messageDisposables = new List<IDisposable>();
 
 
 		public State(string stateName, State parentState)
@@ -95,6 +96,15 @@ namespace Kernel.HSM
 
 			_children.Clear();
 			_events.Clear();
+
+			foreach (var disposable in _messageDisposables)
+			{
+				if (disposable != null)
+				{
+					disposable.Dispose();
+				}
+			}
+			_messageDisposables.Clear();
 		}
 
 		public void Update()
@@ -222,7 +232,7 @@ namespace Kernel.HSM
 			_events.Add(eventName, _ => action(this));
 		}
 
-		public void AddEvent<TEvent>(string eventName, Action<State, TEvent> action) where TEvent : EventArgs
+		public void AddEvent<TEvent>(string eventName, Action<State, TEvent> action) where TEvent : class
 		{
 			if (_events.ContainsKey(eventName))
 			{
@@ -232,7 +242,24 @@ namespace Kernel.HSM
 			_events.Add(eventName, args => action(this, args as TEvent));
 		}
 
-		public void TriggerEvent(string eventName, EventArgs args = null)
+		public void AddMessage<TMessage>(Action<State, TMessage> action) where TMessage : class
+		{
+			var disposable = MessageRouter.Subscribe<TMessage>(msg =>
+			{
+				if (Root.CurrentState == null)
+				{
+					throw new ApplicationException("Message \"" + typeof(TMessage) + "\" calling is failed. Current state in null.");
+				}
+
+				if (Root.CurrentState == this)
+				{
+					action(this, msg);
+				}
+			});
+			_messageDisposables.Add(disposable);
+		}
+
+		public void TriggerEvent(string eventName, object args = null)
 		{
 #if UNITY_EDITOR
 			if (!Root.IsRun) throw new ApplicationException("State machine is not runned.");
@@ -246,7 +273,7 @@ namespace Kernel.HSM
 			TriggerEvent_Internal(Root.CurrentState, eventName, args);
 		}
 
-		public void TriggerEventUpwards(string eventName, EventArgs args = null)
+		public void TriggerEventUpwards(string eventName, object args = null)
 		{
 #if UNITY_EDITOR
 			if (!Root.IsRun) throw new ApplicationException("State machine is not runned.");
@@ -260,7 +287,7 @@ namespace Kernel.HSM
 			TriggerEventUpwards_Internal(Root.CurrentState, eventName, args);
 		}
 
-		public void BroadcastEvent(string eventName, EventArgs args = null)
+		public void BroadcastEvent(string eventName, object args = null)
 		{
 #if UNITY_EDITOR
 			if (!Root.IsRun) throw new ApplicationException("State machine is not runned.");
@@ -279,12 +306,17 @@ namespace Kernel.HSM
 			get { return _children.Values; }
 		}
 
-		public IEnumerable<string> Events
+		public IEnumerable<string> EventNames
 		{
 			get { return _events.Keys; }
 		}
 
-		private void TriggerEvent_Internal(State state, string eventName, EventArgs args)
+		public IEnumerable<KeyValuePair<string, Action<object>>> Events
+		{
+			get { return _events; }
+		}
+
+		private void TriggerEvent_Internal(State state, string eventName, object args)
 		{
 			if (state._events.ContainsKey(eventName))
 			{
@@ -292,7 +324,7 @@ namespace Kernel.HSM
 			}
 		}
 
-		private void TriggerEventUpwards_Internal(State state, string eventName, EventArgs args)
+		private void TriggerEventUpwards_Internal(State state, string eventName, object args)
 		{
 			if (state._events.ContainsKey(eventName))
 			{
@@ -306,7 +338,7 @@ namespace Kernel.HSM
 			}
 		}
 
-		private void BroadcastEvent_Internal(State state, string eventName, EventArgs args)
+		private void BroadcastEvent_Internal(State state, string eventName, object args)
 		{
 			if (state._events.ContainsKey(eventName))
 			{
