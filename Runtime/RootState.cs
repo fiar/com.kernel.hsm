@@ -5,6 +5,11 @@ namespace Kernel.HSM
 {
 	public class RootState : State
 	{
+		public event Action Runned;
+		public event Action Stopped;
+		public event Action Terminated;
+		public event Action<State, State> StateChanged;
+
 		public State CurrentState { get; private set; }
 
 		public bool CanTransitSelf { get; set; }
@@ -58,7 +63,11 @@ namespace Kernel.HSM
 				);
 			}
 
+			var previous = CurrentState;
 			CurrentState = state;
+
+			if (StateChanged != null)
+				StateChanged.Invoke(previous, state);
 		}
 
 		public void Run(string stateName)
@@ -66,6 +75,9 @@ namespace Kernel.HSM
 			if (!IsRun)
 			{
 				IsRun = true;
+
+				if (Runned != null)
+					Runned.Invoke();
 
 				StartChildren(this);
 
@@ -83,6 +95,9 @@ namespace Kernel.HSM
 
 				CurrentState = this;
 				IsActive = true;
+
+				if (Stopped != null)
+					Stopped.Invoke();
 			}
 		}
 
@@ -92,6 +107,9 @@ namespace Kernel.HSM
 			{
 				IsRun = false;
 				DestroyChildren(this);
+
+				if (Terminated != null)
+					Terminated.Invoke();
 			}
 		}
 
