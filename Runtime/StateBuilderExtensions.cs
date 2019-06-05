@@ -36,8 +36,10 @@ namespace Kernel.HSM
 		public static StateBuilder<TParent> Concrete<TParent>(this StateBuilder<TParent> builder, object concreteState)
 		{
 			if (concreteState == null) return builder;
-			
+
 			var info = ConcreteStateDeclarations.ResolveStateInfo(concreteState.GetType());
+			bool isAwaked = false;
+			bool isStarted = false;
 			bool isEntered = false;
 
 			return builder
@@ -45,27 +47,39 @@ namespace Kernel.HSM
 				/// Awake State
 				.Awake(state =>
 				{
-					if (info.Awake != null && concreteState != null)
+					if (!isAwaked)
 					{
-						info.Awake.Invoke(concreteState, null);
+						isAwaked = true;
+						if (info.Awake != null && concreteState != null)
+						{
+							info.Awake.Invoke(concreteState, null);
+						}
 					}
 				})
 				///
 				/// Start State
 				.Start(state =>
 				{
-					if (info.Start != null && concreteState != null)
+					if (!isStarted)
 					{
-						info.Start.Invoke(concreteState, null);
+						isStarted = true;
+						if (info.Start != null && concreteState != null)
+						{
+							info.Start.Invoke(concreteState, null);
+						}
 					}
 				})
 				///
 				/// Destroy State
 				.Destroy(state =>
 				{
-					if (info.OnDestroy != null && concreteState != null)
+					if (isAwaked)
 					{
-						info.OnDestroy.Invoke(concreteState, null);
+						isAwaked = false;
+						if (info.OnDestroy != null && concreteState != null)
+						{
+							info.OnDestroy.Invoke(concreteState, null);
+						}
 					}
 				})
 				///
