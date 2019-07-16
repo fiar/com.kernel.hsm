@@ -95,7 +95,7 @@ namespace Kernel.HSM
 				{
 					delegates.Remove(subscription);
 				}
-				if (delegates.Count == 0)
+				if (delegates.Count != 0)
 				{
 					Instance._delegates.Remove(typeof(T));
 				}
