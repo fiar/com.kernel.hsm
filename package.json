@@ -2,7 +2,7 @@
     "name": "com.kernel.hsm",
     "displayName": "Kernel HSM",
 	"author": "fiar",
-    "version": "0.5.12",
+    "version": "0.5.13",
     "unity": "2018.4",
     "description": "Kernel HSM package",
     "keywords": [
