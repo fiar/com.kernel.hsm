@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Kernel.HSM
@@ -20,6 +21,8 @@ namespace Kernel.HSM
 #if UNITY_EDITOR
 		private string _statesStack;
 #endif
+
+		private Dictionary<Type, int> _firedMessages = new Dictionary<Type, int>();
 
 
 		public RootState(string stateName, State parentState)
@@ -111,6 +114,18 @@ namespace Kernel.HSM
 				if (Terminated != null)
 					Terminated.Invoke();
 			}
+
+			_firedMessages.Clear();
+		}
+
+		public void RegisterFiredMessage<TMessage>() where TMessage : class
+		{
+			_firedMessages[typeof(TMessage)] = Time.frameCount;
+		}
+
+		public bool CanFireMessage<TMessage>() where TMessage : class
+		{
+			return _firedMessages.ContainsKey(typeof(TMessage)) ? _firedMessages[typeof(TMessage)] != Time.frameCount : true;
 		}
 
 		private void StartChildren(State state)

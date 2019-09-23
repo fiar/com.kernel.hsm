@@ -25,6 +25,7 @@ namespace Kernel.HSM
 		private List<IDisposable> _messageDisposables = new List<IDisposable>();
 
 
+
 		public State(string stateName, State parentState)
 		{
 			Name = stateName;
@@ -253,7 +254,11 @@ namespace Kernel.HSM
 
 				if (Root.CurrentState == this)
 				{
-					action(this, msg);
+					if (Root.CanFireMessage<TMessage>())
+					{
+						Root.RegisterFiredMessage<TMessage>();
+						action(this, msg);
+					}
 				}
 			});
 			_messageDisposables.Add(disposable);
