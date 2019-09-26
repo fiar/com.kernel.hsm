@@ -254,9 +254,9 @@ namespace Kernel.HSM
 
 				if (Root.CurrentState == this)
 				{
-					if (Root.CanFireMessage<TMessage>())
+					if (Root.CanFireMessage(msg))
 					{
-						Root.RegisterFiredMessage<TMessage>();
+						Root.RegisterFiredMessage(msg);
 						action(this, msg);
 					}
 				}

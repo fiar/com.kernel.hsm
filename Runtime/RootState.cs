@@ -22,7 +22,7 @@ namespace Kernel.HSM
 		private string _statesStack;
 #endif
 
-		private Dictionary<Type, int> _firedMessages = new Dictionary<Type, int>();
+		private Dictionary<object, int> _firedMessages = new Dictionary<object, int>();
 
 
 		public RootState(string stateName, State parentState)
@@ -118,14 +118,14 @@ namespace Kernel.HSM
 			_firedMessages.Clear();
 		}
 
-		public void RegisterFiredMessage<TMessage>() where TMessage : class
+		public void RegisterFiredMessage(object message)
 		{
-			_firedMessages[typeof(TMessage)] = Time.frameCount;
+			_firedMessages[message] = Time.frameCount;
 		}
 
-		public bool CanFireMessage<TMessage>() where TMessage : class
+		public bool CanFireMessage(object message)
 		{
-			return _firedMessages.ContainsKey(typeof(TMessage)) ? _firedMessages[typeof(TMessage)] != Time.frameCount : true;
+			return _firedMessages.ContainsKey(message) ? _firedMessages[message] != Time.frameCount : true;
 		}
 
 		private void StartChildren(State state)
